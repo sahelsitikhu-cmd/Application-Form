@@ -1,51 +1,38 @@
 document.addEventListener("DOMContentLoaded", function () {
     let form = document.getElementById("applicationForm");
 
-    if(form){
-        form.addEventListener("submit", function(e){
+    if (form) {
+        form.addEventListener("submit", function (e) {
             e.preventDefault();
 
-            let name = document.getElementById("name").value.trim();
-            let dob = document.getElementById("dob").value;
-            let email = document.getElementById("email").value.trim();
-            let phone = document.getElementById("phone").value.trim();
-            let address = document.getElementById("address").value.trim();
-            let seeGpa = document.getElementById("seeGpa").value;
-            let plusTwoGpa = document.getElementById("plusTwoGpa").value;
-            let cmat = document.getElementById("cmat").value;
-            let program = document.getElementById("program").value;
-            let gender = document.querySelector('input[name="gender"]:checked')?.value;
+            let application = {
+                name: document.getElementById("name").value.trim(),
+                dob: document.getElementById("dob").value,
+                gender: document.querySelector('input[name="gender"]:checked').value,
+                email: document.getElementById("email").value.trim(),
+                phone: document.getElementById("phone").value.trim(),
+                address: document.getElementById("address").value.trim(),
+                seeType: document.getElementById("seeType").value,
+                seeScore: document.getElementById("seeScore").value,
+                plusTwoType: document.getElementById("plusTwoType").value,
+                plusTwoScore: document.getElementById("plusTwoScore").value,
+                cmat: document.getElementById("cmat").value,
+                program: document.getElementById("program").value
+            };
 
-            if(name == "" || email == "" || dob == "" || phone == "" || address == "" || seeGpa == "" || plusTwoGpa == "" || cmat == "" || !gender){
-                alert("All fields are required");
-                return false;
-            }
-
-            let emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$/;
-            if(!emailPattern.test(email)){
-                alert("Invalid email address");
-                return false;
-            }
-
-            if(!/^\d{10}$/.test(phone)){
-                alert("Phone number must be exactly 10 digits");
-                return false;
-            }
-
-            let application = { name, dob, gender, email, phone, address, seeGpa, plusTwoGpa, cmat, program };
             let data = JSON.parse(localStorage.getItem("applications")) || [];
             data.push(application);
             localStorage.setItem("applications", JSON.stringify(data));
 
-            alert("Application Submitted Successfully");
+            alert("Application Submitted and Saved!");
             form.reset();
         });
     }
 
     let clearBtn = document.getElementById("clearData");
     if (clearBtn) {
-        clearBtn.addEventListener("click", function() {
-            if (confirm("Are you sure you want to delete ALL records?")) {
+        clearBtn.addEventListener("click", function () {
+            if (confirm("Delete all records from storage?")) {
                 localStorage.removeItem("applications");
                 loadApplications();
             }
@@ -55,9 +42,20 @@ document.addEventListener("DOMContentLoaded", function () {
     loadApplications();
 });
 
-function loadApplications(){
+function updatePlaceholder(inputId, type) {
+    let input = document.getElementById(inputId);
+    if (type === "GPA") {
+        input.placeholder = "Enter GPA (0-4)";
+        input.max = "4";
+    } else {
+        input.placeholder = "Enter Percentage (0-100)";
+        input.max = "100";
+    }
+}
+
+function loadApplications() {
     let tableBody = document.querySelector("#applicationsTable tbody");
-    if(!tableBody) return;
+    if (!tableBody) return;
 
     let data = JSON.parse(localStorage.getItem("applications")) || [];
     tableBody.innerHTML = "";
@@ -68,16 +66,14 @@ function loadApplications(){
             <td>${app.name}</td>
             <td>${app.dob}</td>
             <td>${app.gender}</td>
-            <td>${app.email}</td>
             <td>${app.phone}</td>
+            <td>${app.email}</td>
             <td>${app.address}</td>
-            <td>${app.seeGpa}</td>
-            <td>${app.plusTwoGpa}</td>
+            <td>${app.seeScore} (${app.seeType})</td>
+            <td>${app.plusTwoScore} (${app.plusTwoType})</td>
             <td>${app.cmat}</td>
             <td>${app.program}</td>
-            <td>
-                <button onclick="deleteRow(${index})" class="btn-delete">Delete</button>
-            </td>
+            <td><button onclick="deleteRow(${index})" class="btn-delete">Delete</button></td>
         `;
         tableBody.appendChild(row);
     });
@@ -85,7 +81,7 @@ function loadApplications(){
 
 function deleteRow(index) {
     let data = JSON.parse(localStorage.getItem("applications")) || [];
-    if (confirm("Delete this application?")) {
+    if (confirm("Delete this specific record?")) {
         data.splice(index, 1);
         localStorage.setItem("applications", JSON.stringify(data));
         loadApplications();
